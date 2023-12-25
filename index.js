@@ -1,12 +1,13 @@
 const express = require('express')
-const app = express()
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require('mongodb');
-const port = process.env.PORT || 5000
 const cors = require('cors')
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const app = express()
+const port = process.env.PORT || 5000
 
-app.use(express())
+
 app.use(cors())
+app.use(express.json())
 // platform
 // h2vYxW47wUkrK9y5
 
@@ -26,7 +27,57 @@ async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
         // await client.connect();
+        const creatJobCollection = client.db('platformDB').collection('creatJob')
 
+        app.post('/creatJob', async (req, res) => {
+            const job = req.body;
+            console.log(job)
+            const result = await creatJobCollection.insertOne(job)
+            res.send(result)
+
+        })
+        app.get('/creatJob', async (req, res) => {
+            const result = await creatJobCollection.find().toArray()
+            res.send(result)
+        })
+
+        app.put('/creatJob/:id', async (req, res) => {
+            const id = req.params.id
+            const updateData = req.body
+            console.log(updateData)
+            const filter = { _id: new ObjectId(id) }
+            // const options = { upsert: true }
+            const updateCategory = {
+                $set: {
+                    title: updateData.title,
+                    dateLine: updateData.dateLine,
+                    description: updateData.description,
+                    priority: updateData.priority,
+                    
+                }
+            }
+            const result = await categoryCollection.updateOne(filter, updateCategory)
+            res.send(result)
+        })
+
+        // app.patch('/api/users/admin/:id', async (req, res) => {
+        //     const id = req.params.id;
+        //     console.log(id)
+        //     const filter = { _id: new ObjectId(id) };
+        //     const updatedDoc = {
+        //         $set: {
+        //             role: 'admin'
+        //         }
+        //     }
+        //     const result = await usersCollection.updateOne(filter, updatedDoc);
+        //     res.send(result);
+        // })
+        app.delete('/creatJob/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await creatJobCollection.deleteOne(query);
+            res.send(result);
+        })
         // Send a ping to confirm a successful connection
         // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
